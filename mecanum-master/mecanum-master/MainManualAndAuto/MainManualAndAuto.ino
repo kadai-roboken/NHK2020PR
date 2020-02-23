@@ -4,13 +4,9 @@
 #include "PS3Con.h"
 #include "Motor.h"
 #include "Mecanum.h"
-#include "ShagaiArm.h"
-#include "GeregeArm.h"
-#include "InjectionMachine.h"
-#include "LineCommander.h"
 #include "AIR.h"
 #include "ServoM.h"
-#include "Right_joystick.h"//add
+#include "Right_joystick.h"
 
 //MDはモータドライバのことね。
 USB Usb;
@@ -20,11 +16,6 @@ PS3USB PS3(&Usb);//有線用
 PS3Con ps3con = PS3Con();
 Mecanum mecanum = Mecanum(  2, 3, 4, 5, 6, 7, 44, 45, 1.3);//足場のMDに対する信号ピン。1.3はanalogWriteの値にかける比？
 Right_joystick right_joystick = Right_joystick( 22, 23, 24, 25,  0.0);//最後の値0ならdigitaiWrite,1以上はanalogWrite
-//ShagaiArm armS = ShagaiArm(31, 32, 33, 0);
-//ShagaiArm armS = ShagaiArm(49, 22, 24, 0);
-//GeregeArm armG = GeregeArm(36, 37, 38, 39, 0);
-//InjectionMachine IM = InjectionMachine(40, 41, 0);
-LineCommander sen = LineCommander(200,10, 0, 0, 0);
 AIR air1 = AIR(32);
 AIR air2 = AIR(33);
 AIR air3 = AIR(34);
@@ -45,11 +36,6 @@ void setup() {
   Serial.print(F("\r\nPS3 Bluetooth Library Started"));
 
 
-
-//  sen.SetL_D(29, 30, 31);
-//  sen.SetR_D(27, 26, 25);
-//  sen.SetF_A(A8, A9);
-//  sen.SetB_A(A10, A11);
   pinMode(motorr,OUTPUT);
   pinMode(motorl,OUTPUT);
   pinMode(22,OUTPUT);
@@ -156,21 +142,7 @@ void loop() {
     } else if (PS3.getButtonPress(L2)) {
       Serial.print(F("\r\nL2"));
       air6.ONA();
-//      Serial.print(F("auto:"));
-//      Serial.print(F("deg "));
-//      Serial.print(sen.Angle(), 4);
-//      Serial.print(F("    distans "));
-//      Serial.print(sen.Distance(), 4);
-//      Serial.print(F("  "));
-//      mecanum.Rotation(225,sen.Rotate()+9);
-//      if(sen.Angle() > -15 && sen.Angle() < 15){
-//        mecanum.Front();
-//      }else{
-//        
-//        mecanum.Go(100*sen.Distance(),sen.Angle()+90);
-//      }
-//      mecanum.Print();
-//      Serial.println();
+
     }else if (PS3.getButtonPress(L3)) {
       air2.OFA();
       Serial.print(F("\r\nL3"));
@@ -182,15 +154,7 @@ void loop() {
     }
     else if (PS3.getButtonPress(R2)) {
       Serial.print(F("\r\nR2"));
-      air6.OFA();
-//      Serial.print(F("auto:"));
-//      Serial.print(F("deg "));
-//      Serial.print(sen.Angle(), 4);
-//      Serial.print(F("    distans "));
-//      Serial.print(sen.Distance(), 4);
-//      Serial.print(F("  "));
-//      mecanum.Print();
-//      Serial.println();     
+      air6.OFA();  
     }
     else if (PS3.getButtonPress(R3)) {
       air2.ONA();
@@ -206,9 +170,7 @@ void loop() {
       air1.ONA();
     }
     else {
-       //my_left_analog_pad(ps3con.AnalogPadDirection(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
-      //motor1.off();
-      //right_joystick.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY))); //motor3に使う？  
+      
       mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
       mecanum.Print();
       //right_joystick.Print();
@@ -231,123 +193,6 @@ void loop() {
   }
 }
 
-////以下メカナムの関数
-//void my_left_analog_pad{
-//    if(ps3con.AnaFront){
-//      Serial.print(F("\r\nfront"));
-//      mecanum.Front();
-//    }else if( ps3con.AnaFRight){
-//      Serial.print(F("\r\nfront_right"));
-//      mecanum.FRight();
-//    }else if( ps3con.AnaRight){
-//      Serial.print(F("\r\nright"));
-//      mecanum.Right();
-//    }else if(ps3con.AnaBRight){
-//      Serial.print(F("\r\nback_right"));
-//      mecanum.BRight();
-//    }else if (ps3con.AnaBack){
-//      Serial.print(F("\r\nback"));
-//      mecanum.Back();
-//    }else if(ps3con.AnaBLeft){
-//      Serial.print(F("\r\nback_left"));
-//      mecanum.BLeft();
-//    }else if (ps3con.AnaLeft){
-//      Serial.print(F("\r\nleft"));
-//      mecanum.Left();
-//    }else if ps3con.AnaFLeft){
-//      Serial.print(F("\r\nfront_left"));
-//      mecanum.FLeft();
-//    }else{
-//      Serial.print(F("\r\nstop"));
-//      mecanum.Stop();
-//      //Serial.print(F("\r\nstop1"));
-//  }
-//}
 
-//以下メカナムの関数
-void my_left_analog_pad(int n) {
-  switch (n) {
-    case ps3con.AnaFront:
-      Serial.print(F("\r\nfront"));
-      mecanum.Front();
-      break;
-    case ps3con.AnaFRight:
-      Serial.print(F("\r\nfront_right"));
-      mecanum.FRight();
-      break;
-    case ps3con.AnaRight:
-      Serial.print(F("\r\nright"));
-      mecanum.Right();
-      break;
-    case ps3con.AnaBRight:
-      Serial.print(F("\r\nback_right"));
-      mecanum.BRight();
-      break;
-    case ps3con.AnaBack:
-      Serial.print(F("\r\nback"));
-      mecanum.Back();
-      break;
-    case ps3con.AnaBLeft:
-      Serial.print(F("\r\nback_left"));
-      mecanum.BLeft();
-      break;
-    case ps3con.AnaLeft:
-      Serial.print(F("\r\nleft"));
-      mecanum.Left();
-      break;
-    case ps3con.AnaFLeft:
-      Serial.print(F("\r\nfront_left"));
-      mecanum.FLeft();
-      break;
-    case ps3con.AnaNeutral:
-      Serial.print(F("\r\nstop"));
-      mecanum.Stop();
-      break;
-    default:
-      Serial.print(F("\r\nstop1"));
-  }
-}
-//ここまで
-//ここからは右ジョイスティックで
-//void my_right_analog_pad(int n) {
-//  switch (n) {
-//    case ps3con.AnaFront:
-//      Serial.print(F("\r\nfront"));
-//      //right_joystick.Front(); //前に倒すとモータ２が正転 
-//      digitalWrite(22,HIGH);  
-//      digitalWrite(23,LOW);
-//      digitalWrite(24,LOW);
-//      digitalWrite(25,LOW);          
-//      break;
-//    case ps3con.AnaRight:
-//      Serial.print(F("\r\nright"));
-//      //right_joystick.Right();//右に倒すとモータ３が正転   
-//      digitalWrite(22,LOW);  
-//      digitalWrite(23,HIGH);
-//      digitalWrite(24,LOW);
-//      digitalWrite(25,LOW);         
-//      break;
-//    case ps3con.AnaBack:
-//      Serial.print(F("\r\nback"));
-//      //right_joystick.Back();//後ろに倒すとモータ２が逆転
-//      digitalWrite(22,LOW);  
-//      digitalWrite(23,LOW);
-//      digitalWrite(24,HIGH);
-//      digitalWrite(25,LOW);            
-//      break;
-//    case ps3con.AnaLeft:
-//      Serial.print(F("\r\nleft"));
-//      right_joystick.Left();//左に倒すとモータ３が逆転
-//      digitalWrite(22,LOW);  
-//      digitalWrite(23,LOW);
-//      digitalWrite(24,LOW);
-//      digitalWrite(25,HIGH);          
-//      break;
-//    case ps3con.AnaNeutral:
-//      Serial.print(F("\r\nstop"));
-//      right_joystick.Stop();//何もしないとき
-//      break;
-//    default:
-//      Serial.print(F("\r\nstop1"));
-//  }
-//}
+
+
