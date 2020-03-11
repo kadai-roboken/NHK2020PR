@@ -137,7 +137,7 @@ void loop() {
     }else if (PS3.getButtonPress(START)) {
       Serial.print(F("\r\nStart"));
       air6.ONA();
-    }else if(val == HIGH){
+    }else if(val == 0){
       air1.OFA();
     }else {
       right_joystick.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY))); //motor3に使う？  
