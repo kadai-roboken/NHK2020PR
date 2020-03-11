@@ -77,29 +77,25 @@ void Mecanum::FLeft(){
   motor1->off();
   motor2->onR();
   motor3->onF();
-  motor4->off();
-  
+  motor4->off(); 
 }
-
 void Mecanum::TurnR(){
   motor1->onR();
-  motor2->onR();
+  motor2->onF();
   motor3->onR();
-  motor4->onR();
+  motor4->onF();
 }
 void Mecanum::TurnL(){
   motor1->onF();
-  motor2->onF();
+  motor2->onR();
   motor3->onF();
-  motor4->onF();
-  
+  motor4->onR();  
 }
 void Mecanum::DriftR(){
   motor1->onF();
   motor2->onF();
   motor3->onF();
-  motor4->onR();
-  
+  motor4->onR();  
 }
 void Mecanum::DriftL(){
   motor1->onF();
