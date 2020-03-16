@@ -6,10 +6,12 @@
 #include "PS3Con.h"
 #include "Motor.h"
 #include "Mecanum.h"
+#include "InjectionMachine.h"
+#include "LineCommander.h"
 #include "AIR.h"
 #include "ServoM.h"
 #include "Right_joystick.h"//add
-#define IRRCV_PIN 47
+//#define IRRCV_PIN 47
 
 //MDはモータドライバのことね。
 USB Usb;
@@ -38,7 +40,7 @@ void setup() {
   }
   Serial.print(F("\r\nPS3 Bluetooth Library Started"));
 
-  pinMode(IRRCV_PIN, INPUT);
+//  pinMode(IRRCV_PIN, INPUT);
   pinMode(motorr,OUTPUT);
   pinMode(motorl,OUTPUT);
   for(int i = 22; i < 32; i++){
@@ -60,28 +62,29 @@ void loop() {
   digitalWrite(42,HIGH);
   digitalWrite(43,HIGH);
   // フォトインタラプタの状態を確認する
-  int val = digitalRead(IRRCV_PIN);
-  Serial.println(val);
+  //int val = digitalRead(IRRCV_PIN);
+//  Serial.println(val);
   
   Usb.Task();
   int angy, angx;
   if (PS3.PS3Connected) {
     if (PS3.getButtonClick(PS)) { //各ボタンの中にモーターを動かしたりトランジスタを動かしたりサーボを動かす処理をかいてください 
       Serial.print(F("\r\nPS"));
-    }else {
-    }if (PS3.getAnalogHat(RightHatX) > 240 || PS3.getAnalogHat(RightHatX) < 10) {
+    }
+    else {
+    }if (PS3.getAnalogHat(RightHatX) > 254 || PS3.getAnalogHat(RightHatX) < 1) {
         //左スティック左右の値(最上部0、中央127、最下部255)を読み込む
       angx = PS3.getAnalogHat(RightHatX);    
-        if (angx < 10) {
+        if (angx < 1) {
           digitalWrite(22,HIGH);
         }else{
           digitalWrite(23,HIGH);
         }       
       
-    }else if (PS3.getAnalogHat(RightHatY) > 240 || PS3.getAnalogHat(RightHatY) < 10) {
+    }else if (PS3.getAnalogHat(RightHatY) > 254 || PS3.getAnalogHat(RightHatY) < 1) {
         //左スティック上下の値(最上部0、中央127、最下部255)を読み込む
       angy = PS3.getAnalogHat(RightHatY);          
-        if (angy < 10) {
+        if (angy < 1) {
           digitalWrite(24,HIGH);
         }else{
           digitalWrite(25,HIGH);
@@ -89,28 +92,39 @@ void loop() {
         
     }else if (PS3.getButtonPress(TRIANGLE)) {
       Serial.print(F("\r\nTraingle"));
+//      armG.Bend();
+//      motor1.onF();//Fだから正転
         analogWrite(motorr,250);
+
     }else if (PS3.getButtonPress(CIRCLE)) {
       Serial.print(F("\r\nCircle"));
-      air5.OFA();
+    //  armS.Grab();
+    //  air5.OFA();
     }else if (PS3.getButtonPress(CROSS)) {
       Serial.print(F("\r\nCross"));
+//      armG.Stretch();
+//      motor1.onR();//Rだから逆転
         analogWrite(motorl,250);
     }else if (PS3.getButtonPress(SQUARE)) {
       Serial.print(F("\r\nSquare"));
+      //armS.Release();
       air5.ONA();
     }else if (PS3.getButtonPress(UP)) {
       Serial.print(F("\r\nUp"));
+      //armS.Stretch();
       air3.OFA();
     }else  if (PS3.getButtonPress(RIGHT)) {
       Serial.print(F("\r\nRight"));
       air4.OFA();
+      delay(295);
+      air5.OFA();      
     }else  if (PS3.getButtonPress(DOWN)) {
       Serial.print(F("\r\nDown"));
+      //armS.Bend();
       air3.ONA();
     }else  if (PS3.getButtonPress(LEFT)) {
       Serial.print(F("\r\nLeft"));
-      air4.ONA();   
+      air4.ONA();         
     }else if (PS3.getButtonPress(L1)) {
       Serial.print(F("\r\nL1"));
       mecanum.TurnL();
@@ -126,8 +140,8 @@ void loop() {
       mecanum.TurnR();
       mecanum.Print();
     }else if (PS3.getButtonPress(R2)) {
-      air1.OFA();
-      Serial.print(F("\r\nR2"));    
+      air1.OFA();     
+      Serial.print(F("\r\nR2"));      
     }else if (PS3.getButtonPress(R3)) {
       air2.ONA();
       Serial.print(F("\r\nR3"));
@@ -136,10 +150,14 @@ void loop() {
       air6.OFA();
     }else if (PS3.getButtonPress(START)) {
       Serial.print(F("\r\nStart"));
+//      IM.Inject();
       air6.ONA();
-    }else if(val == 0){
-      air1.OFA();
+//    }else if(val == 1){
+//      air1.OFA();
+//      Serial.print(F("\kkkkkkkk"));
     }else {
+       //my_left_analog_pad(ps3con.AnalogPadDirection(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
+      //motor1.off();
       right_joystick.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY))); //motor3に使う？  
       mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
       mecanum.Print();
@@ -149,9 +167,10 @@ void loop() {
       digitalWrite(22,LOW);
       digitalWrite(23,LOW);
       digitalWrite(24,LOW);
-      digitalWrite(25,LOW); 
-                           
+      digitalWrite(25,LOW);                            
       Serial.println(F("\r"));
+      mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
+      Serial.println(F("\Go"));
     }
   }
 }
