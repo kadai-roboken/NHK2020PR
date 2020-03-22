@@ -1,4 +1,4 @@
-//32,33 is broken
+//32,33, is broken
 
 #include <PS3BT.h>//無線
 //#include <PS3USB.h>//有線
@@ -11,7 +11,8 @@
 #include "AIR.h"
 #include "ServoM.h"
 #include "Right_joystick.h"//add
-//#define IRRCV_PIN 47
+#define tatch_PIN1 47
+#define tatch_PIN2 48
 
 //MDはモータドライバのことね。
 USB Usb;
@@ -40,7 +41,6 @@ void setup() {
   }
   Serial.print(F("\r\nPS3 Bluetooth Library Started"));
 
-//  pinMode(IRRCV_PIN, INPUT);
   pinMode(motorr,OUTPUT);
   pinMode(motorl,OUTPUT);
   for(int i = 22; i < 32; i++){
@@ -49,6 +49,9 @@ void setup() {
   for(int j = 40; j < 44; j++){
     pinMode(j, OUTPUT);
   } 
+  pinMode(tatch_PIN1,INPUT);
+  //pinMode(tatch_PIN2,INPUT);
+ 
 }
 void loop() {
   digitalWrite(26,HIGH);
@@ -61,100 +64,118 @@ void loop() {
   digitalWrite(41,HIGH);  
   digitalWrite(42,HIGH);
   digitalWrite(43,HIGH);
-  // フォトインタラプタの状態を確認する
-  //int val = digitalRead(IRRCV_PIN);
-//  Serial.println(val);
+  // タッチセンサーの状態を確認する
   
   Usb.Task();
-  int angy, angx;
+  int angy;
   if (PS3.PS3Connected) {
     if (PS3.getButtonClick(PS)) { //各ボタンの中にモーターを動かしたりトランジスタを動かしたりサーボを動かす処理をかいてください 
       Serial.print(F("\r\nPS"));
     }
-    else {
-    }if (PS3.getAnalogHat(RightHatX) > 254 || PS3.getAnalogHat(RightHatX) < 1) {
-        //左スティック左右の値(最上部0、中央127、最下部255)を読み込む
-      angx = PS3.getAnalogHat(RightHatX);    
-        if (angx < 1) {
-          digitalWrite(22,HIGH);
-        }else{
-          digitalWrite(23,HIGH);
-        }       
+//    else {
+//    }if (PS3.getAnalogHat(RightHatX) > 254 || PS3.getAnalogHat(RightHatX) < 1) {
+//        //左スティック左右の値(最上部0、中央127、最下部255)を読み込む
+//      angx = PS3.getAnalogHat(RightHatX);    
+//        if (angx < 1) {
+//          digitalWrite(22,HIGH);
+//        }else{
+//          digitalWrite(23,HIGH);
+//        }       
       
-    }else if (PS3.getAnalogHat(RightHatY) > 254 || PS3.getAnalogHat(RightHatY) < 1) {
-        //左スティック上下の値(最上部0、中央127、最下部255)を読み込む
-      angy = PS3.getAnalogHat(RightHatY);          
-        if (angy < 1) {
-          digitalWrite(24,HIGH);
-        }else{
-          digitalWrite(25,HIGH);
-        }
+//    }if (PS3.getAnalogHat(RightHatY) > 254 || PS3.getAnalogHat(RightHatY) < 1) {
+//        //左スティック上下の値(最上部0、中央127、最下部255)を読み込む
+//      angy = PS3.getAnalogHat(RightHatY);          
+//        if (angy < 1) {
+//          digitalWrite(24,HIGH);
+//        }else{
+//          digitalWrite(25,HIGH);
+//        }
         
-    }else if (PS3.getButtonPress(TRIANGLE)) {
+    if (PS3.getButtonPress(TRIANGLE)) {
       Serial.print(F("\r\nTraingle"));
 //      armG.Bend();
-//      motor1.onF();//Fだから正転
+//      motor1.onF();//kick reload
         analogWrite(motorr,250);
 
     }else if (PS3.getButtonPress(CIRCLE)) {
       Serial.print(F("\r\nCircle"));
     //  armS.Grab();
-    //  air5.OFA();
+      air5.ONA();//アーム掴む         
+    
     }else if (PS3.getButtonPress(CROSS)) {
       Serial.print(F("\r\nCross"));
-//      armG.Stretch();
-//      motor1.onR();//Rだから逆転
-        analogWrite(motorl,250);
-    }else if (PS3.getButtonPress(SQUARE)) {
-      Serial.print(F("\r\nSquare"));
-      //armS.Release();
-      air5.ONA();
+//      motor1.onR();
+        analogWrite(motorl,250);//pass reload
+    
+    }else if (PS3.getButtonClick(SQUARE)) {
+      //air3.OFA();//エアシリンダーをギアから外す
+      air4.OFA();//pass 
+      delay(295);
+      air5.OFA();//アーム離す     
+      Serial.print(F("\r\nSquare"));    
+    
     }else if (PS3.getButtonPress(UP)) {
       Serial.print(F("\r\nUp"));
-      //armS.Stretch();
-      air3.OFA();
-    }else  if (PS3.getButtonPress(RIGHT)) {
+      digitalWrite(24,HIGH);            
+    
+    }else if (PS3.getButtonPress(RIGHT)) {
       Serial.print(F("\r\nRight"));
-      air4.OFA();
-      delay(295);
-      air5.OFA();      
-    }else  if (PS3.getButtonPress(DOWN)) {
+      digitalWrite(22,HIGH);            
+    
+    }else if (PS3.getButtonPress(DOWN)) {
       Serial.print(F("\r\nDown"));
       //armS.Bend();
-      air3.ONA();
-    }else  if (PS3.getButtonPress(LEFT)) {
+      digitalWrite(25,HIGH);       
+    
+    }else if (PS3.getButtonPress(LEFT)) {
       Serial.print(F("\r\nLeft"));
-      air4.ONA();         
+      //air4.ONA(); //pass reload 
+      digitalWrite(23,HIGH);       
+    
     }else if (PS3.getButtonPress(L1)) {
       Serial.print(F("\r\nL1"));
       mecanum.TurnL();
       mecanum.Print();
+    
     } else if (PS3.getButtonPress(L2)) {
+      air2.ONA();
       Serial.print(F("\r\nL2"));
-      air1.ONA();
+      //air1.ONA();//キックリロード
+    
     }else if (PS3.getButtonPress(L3)) {
-      air2.OFA();
+      //air2.OFA();
       Serial.print(F("\r\nL3"));
+    
     }else if (PS3.getButtonPress(R1)) {
       Serial.print(F("\r\nR1"));
       mecanum.TurnR();
       mecanum.Print();
-    }else if (PS3.getButtonPress(R2)) {
-      air1.OFA();     
+    
+    }else if (PS3.getButtonClick(R2)) {
+      analogWrite(2,200);
+      analogWrite(3,200);  
+      analogWrite(4,200);
+      analogWrite(5,200);  
+      analogWrite(6,200);
+      analogWrite(7,200);  
+      analogWrite(44,200);
+      analogWrite(45,200);       
+      air1.OFA();//キックスタート           
       Serial.print(F("\r\nR2"));      
+    
     }else if (PS3.getButtonPress(R3)) {
-      air2.ONA();
+      air3.ONA();//エアシリンダーをギアに押し当てる       
       Serial.print(F("\r\nR3"));
+    
     }else if (PS3.getButtonPress(SELECT)) {
       Serial.print(F("\r\nSelect"));
       air6.OFA();
+    
     }else if (PS3.getButtonPress(START)) {
       Serial.print(F("\r\nStart"));
 //      IM.Inject();
-      air6.ONA();
-//    }else if(val == 1){
-//      air1.OFA();
-//      Serial.print(F("\kkkkkkkk"));
+      air6.ONA();  
+    
     }else {
        //my_left_analog_pad(ps3con.AnalogPadDirection(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
       //motor1.off();
@@ -172,6 +193,23 @@ void loop() {
       mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
       Serial.println(F("\Go"));
     }
+    
+    if (digitalRead(tatch_PIN1) == LOW){
+      mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));            
+      analogWrite(motorr,0);
+      air4.ONA();//pass reload
+      air3.OFA();//passエアシリンダーをギアから外す
+            
+      Serial.print(F("\r\npass_reload"));
+    }
+    
+    if (digitalRead(tatch_PIN2) == LOW){
+      mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));      
+      air1.ONA();//kick reload
+      analogWrite(motorr,0);      
+      air2.OFA();//kickエアシリンダーをギアから外す
+      Serial.print(F("\r\nkick_reload")); 
+   }  
   }
 }
 
@@ -218,3 +256,11 @@ void my_left_analog_pad(int n) {
       Serial.print(F("\r\nstop1"));
   }
 }
+
+//ブレーキテスト
+//    }else if (PS3.getButtonPress(L3)) {
+//      air2.OFA();
+//      digitalWrite(motorr,LOW);
+//      digitalWrite(motorl,LOW);
+//      delay(500);      
+//      Serial.print(F("\r\nL3"));
