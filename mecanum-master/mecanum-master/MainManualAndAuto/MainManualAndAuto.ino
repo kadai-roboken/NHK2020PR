@@ -10,7 +10,6 @@
 #include "LineCommander.h"
 #include "AIR.h"
 #include "ServoM.h"
-//#include "Right_joystick.h"//add
 #define tatch_PIN1 47
 #define tatch_PIN2 48
 
@@ -50,7 +49,7 @@ void setup() {
     pinMode(j, OUTPUT);
   } 
   pinMode(tatch_PIN1,INPUT);
-  //pinMode(tatch_PIN2,INPUT);
+  pinMode(tatch_PIN2,INPUT);
  
 }
 void loop() {
@@ -94,8 +93,7 @@ void loop() {
     if (PS3.getButtonPress(TRIANGLE)) {
       Serial.print(F("\r\nTraingle"));
 //      armG.Bend();
-//      motor1.onF();//kick reload
-        analogWrite(motorr,250);
+      analogWrite(motorr,250);
 
     }else if (PS3.getButtonPress(CIRCLE)) {
       Serial.print(F("\r\nCircle"));
@@ -105,10 +103,12 @@ void loop() {
     }else if (PS3.getButtonPress(CROSS)) {
       Serial.print(F("\r\nCross"));
 //      motor1.onR();
-        analogWrite(motorl,250);//pass reload
+      analogWrite(motorl,250);//pass reload
     
     }else if (PS3.getButtonClick(SQUARE)) {
       //air3.OFA();//エアシリンダーをギアから外す
+      air5.ONA();//アーム掴む
+      delay(500);       
       air4.OFA();//pass 
       delay(295);
       air5.OFA();//アーム離す     
@@ -129,7 +129,6 @@ void loop() {
     
     }else if (PS3.getButtonPress(LEFT)) {
       Serial.print(F("\r\nLeft"));
-      //air4.ONA(); //pass reload 
       digitalWrite(25,HIGH);       
     
     }else if (PS3.getButtonPress(L1)) {
@@ -140,10 +139,8 @@ void loop() {
     } else if (PS3.getButtonPress(L2)) {
       air2.ONA();
       Serial.print(F("\r\nL2"));
-      //air1.ONA();//キックリロード
     
     }else if (PS3.getButtonPress(L3)) {
-      //air2.OFA();
       Serial.print(F("\r\nL3"));
     
     }else if (PS3.getButtonPress(R1)) {
@@ -177,12 +174,8 @@ void loop() {
       air6.ONA();  
     
     }else {
-       //my_left_analog_pad(ps3con.AnalogPadDirection(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
-      //motor1.off();
-      //right_joystick.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(RightHatX), PS3.getAnalogHat(RightHatY))); //motor3に使う？  
       mecanum.Go(ps3con.AnalogPadDistance(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)), ps3con.AnalogPadAngle(PS3.getAnalogHat(LeftHatX), PS3.getAnalogHat(LeftHatY)));
       mecanum.Print();
-      //right_joystick.Print();
       digitalWrite(motorr,LOW);
       digitalWrite(motorl,LOW);
       digitalWrite(22,LOW);
@@ -199,7 +192,6 @@ void loop() {
       analogWrite(motorr,0);
       air4.ONA();//pass reload
       air3.OFA();//passエアシリンダーをギアから外す
-            
       Serial.print(F("\r\npass_reload"));
     }
     
