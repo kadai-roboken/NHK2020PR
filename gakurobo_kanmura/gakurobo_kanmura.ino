@@ -6,7 +6,7 @@
 SoftwareSerial mySerial(MYRX, MYTX);
 //0,1はシリアル通信に使っているから使わないで。
 //旋回はゆっくり？
-//ジョイスティック、各軸、11段階ぐらいに分けるぐらいがちょうどいい？
+//ジョイスティック、各軸、64段階ぐらいに分けるぐらいがちょうどいい？
 
 unsigned char c[8];
 unsigned long chksum;
@@ -19,8 +19,6 @@ const int TLFf = 4;
 const int TLFb = 5;
 const int TLBf = 7;
 const int TLBb = 8;
-
-const int line = 20;
 
 void setup() {
   mySerial.begin(2400);//SBDBTとArduinoは2400bps
@@ -38,7 +36,7 @@ void setup() {
 }
 
 void motor(int Lup,int x,int y, double theta ){
-  if(theta>67.5 && theta<112.5){//front
+  if(theta>=70.0 && theta<=110.0){//front
     analogWrite(TRBf, y);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, y);
@@ -48,7 +46,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, y);
     analogWrite(TLBb, 0);
   }
-  else if(theta>-112.5 && theta<-67.5){//back
+  else if(theta>=-110.0 && theta<=-70.0){//back
     analogWrite(TRBf, 0);
     analogWrite(TRBb, -y);
     analogWrite(TLFf, 0);
@@ -58,7 +56,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, 0);
     analogWrite(TLBb, -y);
   }
-  else if(theta>-22.5 && theta<22.5){//right
+  else if(theta>=-20.0 && theta<=20.0){//right
     analogWrite(TRBf, x);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, 0);
@@ -68,7 +66,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, x);
     analogWrite(TLBb, 0);
   }
-  else if(theta>157.5 && theta<180.1){//left
+  else if(theta>=160.0 && theta<180.1){//left
     analogWrite(TRBf, 0);
     analogWrite(TRBb, -x);
     analogWrite(TLFf, -x);
@@ -78,7 +76,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, 0);
     analogWrite(TLBb, -x);
   }
-  else if(theta>-180.1 && theta<-157.5){//left
+  else if(theta>-180.1 && theta<=-160.0){//left
     analogWrite(TRBf, 0);
     analogWrite(TRBb, -x);
     analogWrite(TLFf, 0);
@@ -88,7 +86,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, -x);
     analogWrite(TLBb, 0);
   }  
-  else if(theta>22.5 && theta<67.5){//rfront
+  else if(theta>20.0 && theta<70.0){//rfront
     analogWrite(TRBf, Lup);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, 0);
@@ -98,7 +96,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, Lup);
     analogWrite(TLBb, 0);
   }
-  else if(theta>112.5 && theta<135){//lfront
+  else if(theta>110.0 && theta<=135.0){//lfront
     analogWrite(TRBf, 0);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, Lup);
@@ -108,17 +106,17 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, 0);
     analogWrite(TLBb, 0);
   }
-  else if(theta>135 && theta<157.5){//lfront
+  else if(theta>135.0 && theta<160.0){//lfront
     analogWrite(TRBf, 0);
     analogWrite(TRBb, 0);
-    analogWrite(TLFf, Lup);
+    analogWrite(TLFf, -Lup);
     analogWrite(TLFb, 0);
-    analogWrite(TRFf, Lup);
+    analogWrite(TRFf, -Lup);
     analogWrite(TRFb, 0);
-    analogWrite(TLBf, -Lup);
+    analogWrite(TLBf, 0);
     analogWrite(TLBb, 0);
   }
-  else if(theta>-45 && theta<-22.5){//rback
+  else if(theta>=-45.0 && theta<-20.0){//rback
     analogWrite(TRBf, 0);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, 0);
@@ -128,7 +126,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, 0);
     analogWrite(TLBb, 0);
   }
-  else if(theta>-67.5 && theta<-45){//rback
+  else if(theta>-70.0 && theta<-45.0){//rback
     analogWrite(TRBf, 0);
     analogWrite(TRBb, 0);
     analogWrite(TLFf, 0);
@@ -138,7 +136,7 @@ void motor(int Lup,int x,int y, double theta ){
     analogWrite(TLBf, 0);
     analogWrite(TLBb, 0);
   }
-  else if(theta>-157.5 && theta<-112.5){//lback
+  else if(theta>-160.0 && theta<-110.0){//lback
     analogWrite(TRBf, 0);
     analogWrite(TRBb, -Lup);
     analogWrite(TLFf, 0);
@@ -192,19 +190,21 @@ void loop() {
 //      Serial.println(rightsticky);
        Serial.print("\t");
       
+      //cast
       int Leftstickx = leftstickx.toInt();
-      int Leftsticky = leftsticky.toInt(); 
+      int Leftsticky = leftsticky.toInt();
+      // 
       int x = (Leftstickx - 64)*4;
       int y1 = (Leftsticky - 64)*4;
       int y = -1*y1;
+      //joystickの角度をarctanを用いて検出
       float a = atan2(y, x);
       float theta = a / 3.14159 * 180;
+      //座標（x,y）からベクトルの大きさを求めてる。
       Lup = sqrt(pow(x,2)+pow(y,2))*0.75;
-      //Rup = (0 - x - y);
+
       Serial.print("  Lup=");
       Serial.print(  Lup);
-//      Serial.print("  Rup=");
-//      Serial.print(  Rup);
       Serial.print(" x=");
       Serial.print(x);
       Serial.print(" y=");      
