@@ -7,6 +7,7 @@
 #define MYTX 11 //デジタル11番ピンはソフトウェアシリアルTX
 SoftwareSerial mySerial(MYRX, MYTX);
 //0,1はシリアル通信に使っているから使わないで。
+//Serial.print多用するとチェックサムエラーが発生する。
 //旋回はゆっくり？
 //ジョイスティック、各軸、11段階ぐらいに分けるぐらいがちょうどいい？
 
@@ -15,18 +16,20 @@ unsigned long chksum;
   
 const int TRFf = PC8;//3/3,
 const int TRFb = PA11;//1/4
-const int TRBf = 2;//1/3
-const int TRBb = 3;//2/2
-const int TLFf = 4;//3/2
-const int TLFb = 5;//3/1
-const int TLBf = 7;//1/1
-const int TLBb = 8;//1/2
+const int TRBf = PA10;//1/3
+const int TRBb = PB3;//2/2
+const int TLFf = PB5;//3/2
+const int TLFb = PB4;//3/1
+const int TLBf = PA8;//1/1
+const int TLBb = PA9;//1/2
 const int Pf = PB6;//4/1
 const int Pb = PA5;//2/1
 const int Hf = PB9;//4/3
 const int Hb = PB8;//4/4
 const int Lf = PB15;//1/3N
 const int Lb = PB14;//1/2N
+const int tatch_PIN1 = PA12;
+const int tatch_PIN2 = PB12;
 
 AIR air1 = AIR(PA13);
 AIR air2 = AIR(PA14);
@@ -48,9 +51,17 @@ void setup() {
   pinMode(TLFb,OUTPUT);//3/1
   pinMode(TLBf,OUTPUT);//1/1
   pinMode(TLBb,OUTPUT);//1/2
+  pinMode (Pf ,OUTPUT);//4/1
+  pinMode (Pb ,OUTPUT);//2/1
+  pinMode (Hf ,OUTPUT);//4/3
+  pinMode (Hb ,OUTPUT);//4/4
+  pinMode (Lf ,OUTPUT);//1/3N
+  pinMode (Lb ,OUTPUT);//1/2N
+  pinMode(tatch_PIN1,INPUT);
+  pinMode(tatch_PIN2,INPUT);
 }
 
-void motor(int Lup,int x,int y, double theta ){
+void motorL(int Lup,int x,int y, double theta ){
   if(theta>=70.0 && theta<=110.0){//front
     analogWrite(TRBf, y);
     analogWrite(TRBb, 0);
@@ -175,7 +186,10 @@ void motor(int Lup,int x,int y, double theta ){
 
 void loop() {
   //まずは無線からシリアルを読み込む。c[1]とc[2]にキー入力が格納される。
-  double Lup; 
+  double Lup;
+  int x;
+  int y;
+  float theta; 
   int i;
   if (mySerial.available() >= 8) { //8byte以上あるかチェック
     if (mySerial.read() == 0x80) { //１byte読み込んで0x80のスタートビットかチェック
@@ -191,6 +205,7 @@ void loop() {
         Serial.println("check sum OK !");//チェックサムOKを表示。
       }
       else {
+        motorL(Lup,x,y, theta);
         Serial.println("check sum * * ERROR * *");//ダメならエラーを表示。
       }
       
@@ -199,23 +214,28 @@ void loop() {
       String leftsticky =  String(c[4], DEC); //左のアナログスティックライトの上下の値を16→10進数へ
       String rightstickx =  String(c[5], DEC); //右のアナログスティックライトの左右の値を16→10進数へ
       String rightsticky =  String(c[6], DEC); //右のアナログスティックライトの上下の値を16→10進数へ
-//      Serial.print(leftstickx);
-//      Serial.print(leftsticky);
-//      Serial.print(rightstickx);
-//      Serial.println(rightsticky);
+      Serial.print(leftstickx);
+      Serial.print(leftsticky);
+      Serial.print(rightstickx);
+      Serial.println(rightsticky);
        Serial.print("\t");
       
       int Leftstickx = leftstickx.toInt();
       int Leftsticky = leftsticky.toInt(); 
-      int x = (Leftstickx - 64)*4;
-      int y1 = (Leftsticky - 64)*4;
-      int y = -1*y1;
+//      int Rightstickx = rightsticky.toInt(); 
+//      int Rightsticky = rightsticky.toInt(); 
+        x = (Leftstickx - 64)*4;
+        y = -1*(Leftsticky - 64)*4;
+//      int Rx = (Rightstickx - 64)*4;
+//      int Ry = -1*(Rightsticky - 64)*4;
       float a = atan2(y, x);
-      float theta = a / 3.14159 * 180;
+//      float b = atan2(Ry, Rx);
+      theta = a / 3.14159 * 180;
+//      float Rtheta = b / 3.14159 * 180;
       Lup = sqrt(pow(x,2)+pow(y,2))*0.75;
-      //Rup = (0 - x - y);
-      Serial.print("  Lup=");
-      Serial.print(  Lup);
+
+//      Serial.print("  Lup=");
+//      Serial.print(  Lup);
       Serial.print(" x=");
       Serial.print(x);
       Serial.print(" y=");      
@@ -223,6 +243,7 @@ void loop() {
       Serial.print(" theta=");
       Serial.print(theta);
       Serial.print("°");
+
       
       //ここから、キー入力に応じて、メッセージを出す。
       if (c[1] == 0x00 ) { //何も押されていなければ静止
@@ -241,51 +262,59 @@ void loop() {
       
       if ((c[2] & 0x01) == 0x01 && (c[2] & 0x02) == 0x02) {
         //if ((c[2] & 0x03 ) == 0x03 ) { //Start(上下同時押しはないと言う前提で書いてるので、注意！）
-        air6.ONA();   
+           
         Serial.println("Start");
 
       } else  if ((c[2] & 0x04) == 0x04 && (c[2] & 0x08) == 0x08) {//左右同時押しはないと言う前提で書いてるので、注意！）
         // if ((c[2] & 0x0C ) == 0x0C ) { //Select
-        air6.OFA();
+        
         Serial.println("Select");
 
       } else {
 
 
         if ((c[2] & 0x01) == 0x01 ) { //上
+          //analogWrite(Lf,150);
           Serial.println("↑Up");    
         }
-        else if ((c[2] & 0x02) == 0x02 ) { //下 
+        else if ((c[2] & 0x02) == 0x02 ) { //下
+          //analogWrite(Lb,150); 
           Serial.println("↓Down");
         }
         else if ((c[2] & 0x03 ) == 0x03 ) { //Start
+          //air6.ONA(); 
           Serial.println("Start");
         }
-        else if ((c[2] & 0x05 ) == 0x05 ) { //Start
-          Serial.println("PS");
+        else if ((c[2] & 0x05 ) == 0x05 ) { //Select
+          //air6.OFA();
+          Serial.println("Select");
         }
         else if ((c[2] & 0x04 ) == 0x04 ) { //右
+          //analogWrite(Hf,150);
           Serial.println("→Right");
         }
         else if ((c[2] & 0x08 ) == 0x08 ) { //左
+          //analogWrite(Hb,150);
           Serial.println("←Left");
         }
         else if ((c[2] & 0x10 ) == 0x10 ) { //三角
+          //analogWrite(Pf,250);
           Serial.println("Triangle△");
         }
         else if ((c[2] & 0x20 ) == 0x20 ) { //バツ
+          //analogWrite(Pb,250);
           Serial.println("×Cross");
         }
         else if ((c[2] & 0x40 ) == 0x40 ) { //マル
-          air5.ONA();//アーム掴む
+          //air5.ONA();//アーム掴む
           Serial.println("○Circle");
         }
         else if ((c[1] & 0x01 ) == 0x01 ) { //四角
-          air5.ONA();//アーム掴む
-          delay(500);       
-          air4.OFA();//pass 
-          delay(295);
-          air5.OFA();//アーム離す
+//          air5.ONA();//アーム掴む
+//          delay(500);       
+//          air4.OFA();//pass 
+//          delay(295);
+//          air5.OFA();//アーム離す
           Serial.println("□Square");
         }
         else if ((c[1] & 0x02 ) == 0x02 ) { //L1 turn light
@@ -300,7 +329,7 @@ void loop() {
           Serial.println("L1");
         }
         else if ((c[1] & 0x04 ) == 0x04 ) { //L2
-          air2.ONA();
+          //air2.ONA();
           Serial.println("L2");
         }
         else if ((c[1] & 0x20 ) == 0x20 ) { //L3
@@ -318,17 +347,28 @@ void loop() {
           Serial.println("R1");
         }
         else if ((c[1] & 0x10 ) == 0x10 ) { //R2
+          analogWrite(TRBf, 200);
+          analogWrite(TRBb, 200);
+          analogWrite(TLFf, 200);
+          analogWrite(TLFb, 200);
+          analogWrite(TRFf, 200);
+          analogWrite(TRFb, 200);
+          analogWrite(TLBf, 200);
+          analogWrite(TLBb, 200);      
+          //air1.OFA();//キックスタート
           Serial.println("R2");
         }
         else if ((c[1] & 0x40 ) == 0x40 ) { //R3
-          air3.ONA();//エアシリンダーをギアに押し当てる         
+          //air3.ONA();//エアシリンダーをギアに押し当てる         
           Serial.println("R3");
         }
         else if ((c[1] & 0x80 ) == 0x80 ) { //PS
           Serial.println("PS");
         }else{
-          motor(Lup,x,y, theta);
-       }
+          motorL(Lup,x,y, theta);
+          //analogWrite(Pb,0);
+          //analogWrite(Pf,0);
+        }
       }
     }
   }
